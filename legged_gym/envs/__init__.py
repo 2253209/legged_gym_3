@@ -42,8 +42,11 @@ from .a1.a1_config import A1RoughCfg, A1RoughCfgPPO
 from .zq_10dof.zq10 import Zq10Robot
 from .zq_10dof.zq10_config import Zq10Cfg, Zq10CfgPPO
 
-from .zq_12dof.zq import Zq12Robot
-from .zq_12dof.zq_config import Zq12Cfg, Zq12CfgPPO
+# from .zq_12dof.zq import Zq12Robot
+# from .zq_12dof.zq_config import Zq12Cfg, Zq12CfgPPO
+
+from .zq_12dof_squat.zq import Zq12Robot
+from .zq_12dof_squat.zq_config import Zq12Cfg, Zq12CfgPPO
 
 import os
 
