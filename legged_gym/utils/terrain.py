@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: Copyright (c) 2021 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-FileCopyrightText: Copyright (c) 2021 ETH Zurich, Nikita Rudin
 # SPDX-License-Identifier: BSD-3-Clause
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -26,14 +27,13 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Copyright (c) 2021 ETH Zurich, Nikita Rudin
+# Copyright (c) 2024 Beijing RobotEra TECHNOLOGY CO.,LTD. All rights reserved.
+
 
 import numpy as np
-from numpy.random import choice
-from scipy import interpolate
 
 from isaacgym import terrain_utils
-from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg
+from humanoid.envs.base.legged_robot_config import LeggedRobotCfg
 
 class Terrain:
     def __init__(self, cfg: LeggedRobotCfg.terrain, num_robots) -> None:
@@ -185,3 +185,47 @@ def pit_terrain(terrain, depth, platform_size=1.):
     y1 = terrain.width // 2 - platform_size
     y2 = terrain.width // 2 + platform_size
     terrain.height_field_raw[x1:x2, y1:y2] = -depth
+
+class HumanoidTerrain(Terrain):
+    def __init__(self, cfg: LeggedRobotCfg.terrain, num_robots) -> None:
+        super().__init__(cfg, num_robots)
+
+    def randomized_terrain(self):
+        for k in range(self.cfg.num_sub_terrains):
+            # Env coordinates in the world
+            (i, j) = np.unravel_index(k, (self.cfg.num_rows, self.cfg.num_cols))
+
+            choice = np.random.uniform(0, 1)
+            difficulty = np.random.uniform(0, 1)
+            terrain = self.make_terrain(choice, difficulty)
+            self.add_terrain_to_map(terrain, i, j)
+
+    def make_terrain(self, choice, difficulty):
+        terrain = terrain_utils.SubTerrain(   "terrain",
+                                width=self.width_per_env_pixels,
+                                length=self.width_per_env_pixels,
+                                vertical_scale=self.cfg.vertical_scale,
+                                horizontal_scale=self.cfg.horizontal_scale)
+        discrete_obstacles_height = difficulty * 0.04
+        r_height = difficulty * 0.07
+        h_slope = difficulty * 0.15
+        if choice < self.proportions[0]:
+            pass
+        elif choice < self.proportions[1]:
+            num_rectangles = 20
+            rectangle_min_size = 1.
+            rectangle_max_size = 2.
+            terrain_utils.discrete_obstacles_terrain(terrain, discrete_obstacles_height, rectangle_min_size, rectangle_max_size, num_rectangles, platform_size=3.)
+        elif choice < self.proportions[2]:
+            terrain_utils.random_uniform_terrain(terrain, min_height=-r_height, max_height=r_height, step=0.005, downsampled_scale=0.2)
+        elif choice < self.proportions[3]:
+            terrain_utils.pyramid_sloped_terrain(terrain, slope=h_slope, platform_size=0.1)
+        elif choice < self.proportions[4]:
+            terrain_utils.pyramid_sloped_terrain(terrain, slope=-h_slope, platform_size=0.1)
+        elif choice < self.proportions[5]:
+            terrain_utils.pyramid_stairs_terrain(terrain, step_width=0.4, step_height=discrete_obstacles_height, platform_size=1.)
+        elif choice < self.proportions[6]:
+            terrain_utils.pyramid_stairs_terrain(terrain, step_width=0.4, step_height=-discrete_obstacles_height, platform_size=1.)
+        else:
+            pass
+        return terrain

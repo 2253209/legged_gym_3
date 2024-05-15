@@ -97,7 +97,7 @@ class Zq10Cfg(LeggedRobotCfg):
         clip_actions = 100.
 
     class commands(LeggedRobotCfg.commands):
-        step_joint_offset = 0.50  # rad
+        step_joint_offset = 0.30  # rad
         step_freq = 0.2  # HZ （e.g. cycle-time=0.66）
 
         class ranges(LeggedRobotCfg.commands.ranges):
@@ -216,7 +216,7 @@ class Zq10CfgPPO(LeggedRobotCfgPPO):
     class runner(LeggedRobotCfgPPO.runner):
         run_name = ''
         experiment_name = 'zq10'
-        max_iterations = 100000
+        max_iterations = 10000
         # logging
         save_interval = 400
         # checkpoint = '90000'

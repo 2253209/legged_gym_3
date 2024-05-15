@@ -40,6 +40,7 @@ from typing import Tuple, Dict
 from collections import deque
 from legged_gym.envs import LeggedRobot
 from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg
+from legged_gym.utils.terrain import HumanoidTerrain
 
 
 def get_euler_xyz_tensor(quat):
@@ -284,7 +285,11 @@ class Zq10Robot(LeggedRobot):
 
     def check_termination(self):
         super().check_termination()
-        self.reset_buf2 = self.root_states[:, 2] < self.cfg.asset.terminate_body_height  # 0.3!!!!!!!!!!!!!!!!!
+        measured_heights = torch.sum(
+            self.rigid_state[:, self.feet_indices, 2], dim=1) / 2
+        base_height = self.root_states[:, 2] - (measured_heights - 0.05)
+        self.reset_buf2 = base_height < self.cfg.asset.terminate_body_height
+        # self.reset_buf2 = self.root_states[:, 2] < self.cfg.asset.terminate_body_height  # 0.3!!!!!!!!!!!!!!!!!
         self.reset_buf |= self.reset_buf2
 
     def _resample_commands(self, env_ids):
@@ -326,6 +331,26 @@ class Zq10Robot(LeggedRobot):
         # self.ref_dof_pos[self.switch_step_or_stand == 0, :] = 0. + self.default_dof_pos[0, :]
         # print(self.ref_count[0], self.cos_pos[0, 0], self.cos_pos[0, 1], self.ref_dof_pos[0, [2, 3, 4, 8, 9, 10]])
         # print(self.ref_count[0], self.ref_freq[0], self.ref_dof_pos[0, 8])
+
+    def create_sim(self):
+        """ Creates simulation, terrain and evironments
+        """
+        self.up_axis_idx = 2  # 2 for z, 1 for y -> adapt gravity accordingly
+        self.sim = self.gym.create_sim(
+            self.sim_device_id, self.graphics_device_id, self.physics_engine, self.sim_params)
+        mesh_type = self.cfg.terrain.mesh_type
+        if mesh_type in ['heightfield', 'trimesh']:
+            self.terrain = HumanoidTerrain(self.cfg.terrain, self.num_envs)
+        if mesh_type == 'plane':
+            self._create_ground_plane()
+        elif mesh_type == 'heightfield':
+            self._create_heightfield()
+        elif mesh_type == 'trimesh':
+            self._create_trimesh()
+        elif mesh_type is not None:
+            raise ValueError(
+                "Terrain mesh type not recognised. Allowed types are [None, plane, heightfield, trimesh]")
+        self._create_envs()
 
     # ------------------------ rewards --------------------------------------------------------------------------------
 

@@ -28,6 +28,7 @@
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
 import time
+from datetime import datetime
 import cv2
 from legged_gym import LEGGED_GYM_ROOT_DIR
 import os
@@ -35,6 +36,7 @@ import os
 import isaacgym
 from legged_gym.envs import *
 from legged_gym.utils import  get_args, export_policy_as_jit, task_registry, Logger
+from isaacgym import gymapi
 
 import numpy as np
 import torch
@@ -80,6 +82,33 @@ def play(args):
     t1 = time.time()
     t0 = 0
 
+    if RENDER:
+        camera_properties = gymapi.CameraProperties()
+        camera_properties.width = 1920
+        camera_properties.height = 1080
+        h1 = env.gym.create_camera_sensor(env.envs[1], camera_properties)
+        camera_offset = gymapi.Vec3(1, -1, 0.5)
+        camera_rotation = gymapi.Quat.from_axis_angle(gymapi.Vec3(-0.3, 0.2, 1),
+                                                    np.deg2rad(135))
+        actor_handle = env.gym.get_actor_handle(env.envs[1], 0)
+        body_handle = env.gym.get_actor_rigid_body_handle(env.envs[1], actor_handle, 0)
+        env.gym.attach_camera_to_body(
+            h1, env.envs[1], body_handle,
+            gymapi.Transform(camera_offset, camera_rotation),
+            gymapi.FOLLOW_POSITION)
+
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        video_dir = os.path.join(LEGGED_GYM_ROOT_DIR, 'videos')
+        experiment_dir = os.path.join(LEGGED_GYM_ROOT_DIR, 'videos', train_cfg.runner.experiment_name)
+        if not args.run_name:
+            args.run_name = ''
+        dir = os.path.join(experiment_dir, datetime.now().strftime('%b%d_%H-%M-%S')+ args.run_name + '.mp4')
+        if not os.path.exists(video_dir):
+            os.mkdir(video_dir)
+        if not os.path.exists(experiment_dir):
+            os.mkdir(experiment_dir)
+        video = cv2.VideoWriter(dir, fourcc, 50.0, (1920, 1080))
+
     for i in range(10*int(env.max_episode_length)):
         actions = policy(obs.detach())
 
@@ -108,6 +137,15 @@ def play(args):
             camera_position += camera_vel * env.dt
             env.set_camera(camera_position, camera_position + camera_direction)
 
+        if RENDER:
+            env.gym.fetch_results(env.sim, True)
+            env.gym.step_graphics(env.sim)
+            env.gym.render_all_camera_sensors(env.sim)
+            img = env.gym.get_camera_image(env.sim, env.envs[1], h1, gymapi.IMAGE_COLOR)
+            img = np.reshape(img, (1080, 1920, 4))
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+            video.write(img[..., :3])
+
         if i < stop_state_log:
             logger.log_states(
                 {
@@ -134,10 +172,14 @@ def play(args):
                     logger.log_rewards(infos["episode"], num_episodes)
         elif i==stop_rew_log:
             logger.print_rewards()
+    if RENDER:
+        video.release()
+
 
 if __name__ == '__main__':
     EXPORT_POLICY = True
     RECORD_FRAMES = False
     MOVE_CAMERA = False
+    RENDER = True
     args = get_args()
     play(args)

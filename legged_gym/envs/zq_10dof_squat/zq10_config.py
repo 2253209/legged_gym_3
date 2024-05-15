@@ -15,25 +15,33 @@ class Zq10Cfg(LeggedRobotCfg):
         act_latency = [5, 20]
 
     class terrain(LeggedRobotCfg.terrain):
-        mesh_type = 'plane'
+        # mesh_type = 'plane'
+        mesh_type = 'trimesh'
+        curriculum = False
+        # rough terrain only:
+        measure_heights = False
         static_friction = 1.0
         dynamic_friction = 1.0
+        terrain_length = 8.
+        terrain_width = 8.
+        num_rows = 20  # number of terrain rows (levels)
+        num_cols = 20  # number of terrain cols (types)
+        max_init_terrain_level = 10  # starting curriculum state
+        # plane; obstacles; uniform; slope_up; slope_down, stair_up, stair_down
+        terrain_proportions = [0.2, 0.2, 0.4, 0.1, 0.1, 0, 0]
         restitution = 0.
-        measure_heights = False
-        measured_points_x = [-0.5, -0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5]  # 1mx1m rectangle (without center line)
-        measured_points_y = [-0.5, -0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5]
 
     class init_state(LeggedRobotCfg.init_state):
         pos = [0.0, 0.0, 0.84]  # x,y,z [m] accurate:0.832
         default_joint_angles = {  # = target angles [rad] when action = 0.0
-            'JOINT_Y1': -0.0,
+            'JOINT_Y1': -0.03,
             'JOINT_Y2': 0.0,
             'JOINT_Y3': 0.21,
             'JOINT_Y4': -0.53,
             'JOINT_Y5': 0.31,
             # 'JOINT_Y6': 0.0,
 
-            'JOINT_Z1': 0.0,
+            'JOINT_Z1': 0.03,
             'JOINT_Z2': 0.0,
             'JOINT_Z3': 0.21,
             'JOINT_Z4': -0.53,
@@ -73,8 +81,8 @@ class Zq10Cfg(LeggedRobotCfg):
 
     class viewer(LeggedRobotCfg.viewer):
         ref_env = 0
-        pos = [-3, -3, 3]  # [m]
-        lookat = [0., 0, 1.]  # [m]
+        pos = [-3., -0., 1.]  # [m]
+        lookat = [0., 0., 1.]  # [m]
 
     class noise:
         add_noise = True
@@ -97,7 +105,7 @@ class Zq10Cfg(LeggedRobotCfg):
         clip_actions = 100.
 
     class commands(LeggedRobotCfg.commands):
-        step_joint_offset = 0.50  # rad
+        step_joint_offset = 0.30  # rad
         step_freq = 0.2  # HZ （e.g. cycle-time=0.66）
 
         class ranges(LeggedRobotCfg.commands.ranges):
@@ -216,7 +224,7 @@ class Zq10CfgPPO(LeggedRobotCfgPPO):
     class runner(LeggedRobotCfgPPO.runner):
         run_name = ''
         experiment_name = 'zq10'
-        max_iterations = 100000
+        max_iterations = 10000
         # logging
         save_interval = 400
         # checkpoint = '90000'
