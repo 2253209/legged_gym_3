@@ -50,7 +50,7 @@ def get_euler_xyz_tensor(quat):
     return euler_xyz
 
 
-class Zq12Robot(LeggedRobot):
+class Zq10Robot(LeggedRobot):
     def __init__(self, cfg: LeggedRobotCfg, sim_params, physics_engine, sim_device, headless):
         super().__init__(cfg, sim_params, physics_engine, sim_device, headless)
         self.base_euler_xyz = get_euler_xyz_tensor(self.base_quat)
@@ -275,9 +275,9 @@ class Zq12Robot(LeggedRobot):
         noise_vec[5:8] = noise_scales.ang_vel * noise_level * self.obs_scales.ang_vel  # 0.2 * 1 * 0.25 = 0.05
         noise_vec[8:11] = noise_scales.gravity * noise_level  # 0.05 * 1. = 0.05
 
-        noise_vec[11:23] = noise_scales.dof_pos * noise_level * self.obs_scales.dof_pos  # 0.01 * 1 * 1. = 0.01
-        noise_vec[23:35] = noise_scales.dof_vel * noise_level * self.obs_scales.dof_vel  # 1.5 * 1 * 0.05 = 0.075
-        noise_vec[35:47] = 0.  # previous actions
+        noise_vec[11:21] = noise_scales.dof_pos * noise_level * self.obs_scales.dof_pos  # 0.01 * 1 * 1. = 0.01
+        noise_vec[21:31] = noise_scales.dof_vel * noise_level * self.obs_scales.dof_vel  # 1.5 * 1 * 0.05 = 0.075
+        noise_vec[31:41] = 0.  # previous actions
         # if self.cfg.terrain.measure_heights:
         #     noise_vec[48:235] = noise_scales.height_measurements* noise_level * self.obs_scales.height_measurements
         return noise_vec
@@ -291,16 +291,18 @@ class Zq12Robot(LeggedRobot):
         super()._resample_commands(env_ids)
         # self.commands[env_ids, :2] *= (torch.norm(self.commands[env_ids, :2], dim=1) > 0.2).unsqueeze(1)
         # 每次resample将freq增加0.1，如果超过1Hz，重置成0.5Hz
-        # self.ref_freq[env_ids] += 0.1
-        # self.ref_freq[self.ref_freq > 1.] = self.cfg.commands.step_freq
+        self.ref_freq[env_ids] += 0.1
+        self.ref_freq[self.ref_freq > 1.] = self.cfg.commands.step_freq
 
     def compute_reference_states(self):
         phase = self.ref_count * self.dt * self.ref_freq * 2.
         mask_right = (torch.floor(phase) + 1) % 2
         mask_left = torch.floor(phase) % 2
-        cos_pos = (1 - torch.cos(2 * torch.pi * phase)) / 2  # 得到一条从0开始增加，频率为step_freq，振幅0～1的曲线，接地比较平滑
-        self.cos_pos[:, 0] = cos_pos * mask_right
-        self.cos_pos[:, 1] = cos_pos * mask_left
+        # cos_pos = (1 - torch.cos(2 * torch.pi * phase)) / 2  # 得到一条从0开始增加，频率为step_freq，振幅0～1的曲线，接地比较平滑
+        cos_pos = torch.sin(2 * torch.pi * phase)/2
+        self.cos_pos[:, 0] = cos_pos# * mask_right
+        # self.cos_pos[:, 1] = cos_pos * mask_left
+        self.cos_pos[:, 1] = cos_pos# * mask_right
 
         scale_1 = self.cfg.commands.step_joint_offset
         scale_2 = 2 * scale_1
@@ -313,9 +315,9 @@ class Zq12Robot(LeggedRobot):
         self.ref_dof_pos[:, 4] += self.cos_pos[:, 0] * scale_1
         # left foot stance phase set to default joint pos
         # sin_pos_l[sin_pos_l > 0] = 0
-        self.ref_dof_pos[:, 8] += self.cos_pos[:, 1] * scale_1
-        self.ref_dof_pos[:, 9] += -self.cos_pos[:, 1] * scale_2
-        self.ref_dof_pos[:, 10] += self.cos_pos[:, 1] * scale_1
+        self.ref_dof_pos[:, 7] += self.cos_pos[:, 1] * scale_1
+        self.ref_dof_pos[:, 8] += -self.cos_pos[:, 1] * scale_2
+        self.ref_dof_pos[:, 9] += self.cos_pos[:, 1] * scale_1
 
         # 双足支撑相位
         # self.ref_dof_pos[torch.abs(self.sin_pos[:, 0]) < 0.1, :] = 0. + self.default_dof_pos[0, :]
@@ -323,7 +325,7 @@ class Zq12Robot(LeggedRobot):
         # 如果cmd很小，姿态一直为默认姿势，sin相位也为0
         # self.ref_dof_pos[self.switch_step_or_stand == 0, :] = 0. + self.default_dof_pos[0, :]
         # print(self.ref_count[0], self.cos_pos[0, 0], self.cos_pos[0, 1], self.ref_dof_pos[0, [2, 3, 4, 8, 9, 10]])
-        # print(self.sin_pos[0, 0], self.ref_dof_pos[0, :])
+        # print(self.ref_count[0], self.ref_freq[0], self.ref_dof_pos[0, 8])
 
     # ------------------------ rewards --------------------------------------------------------------------------------
 
@@ -403,24 +405,24 @@ class Zq12Robot(LeggedRobot):
 
     def _reward_ankle_action_rate(self):
         # Penalize changes in ankle actions
-        diff1 = self.last_actions[:, 4:6] - self.actions[:, 4:6]
-        diff2 = self.last_actions[:, 10:] - self.actions[:, 10:]
-        return torch.sum(torch.abs(diff1) + torch.abs(diff2), dim=1)
+        diff1 = self.last_actions[:, 4] - self.actions[:, 4]
+        diff2 = self.last_actions[:, 9] - self.actions[:, 9]
+        return torch.abs(diff1) + torch.abs(diff2)
 
     def _reward_ankle_dof_acc(self):
         # Penalize ankle dof accelerations
-        diff1 = self.last_dof_vel[:, 4:6] - self.dof_vel[:, 4:6]
-        diff2 = self.last_dof_vel[:, 10:] - self.dof_vel[:, 10:]
-        return torch.sum(torch.abs(diff1 / self.dt) + torch.abs(diff2 / self.dt), dim=1)
+        diff1 = self.last_dof_vel[:, 4] - self.dof_vel[:, 4]
+        diff2 = self.last_dof_vel[:, 9] - self.dof_vel[:, 9]
+        return torch.abs(diff1 / self.dt) + torch.abs(diff2 / self.dt)
 
     def _reward_target_ankle_pos(self):
         """
         Calculates the reward for keeping joint positions close to default positions, with a focus
         on penalizing deviation in yaw and roll directions. Excludes yaw and roll from the main penalty.
         """
-        diff = torch.abs(self.dof_pos[:, 4:6] - self.ref_dof_pos[:, 4:6])
-        diff += torch.abs(self.dof_pos[:, 10:] - self.ref_dof_pos[:, 10:])
-        ankle_imitate_reward = torch.exp(-20*torch.sum(diff, dim=1))  # positive reward, not the penalty
+        diff = torch.abs(self.dof_pos[:, 4] - self.ref_dof_pos[:, 4])
+        diff += torch.abs(self.dof_pos[:, 9] - self.ref_dof_pos[:, 9])
+        ankle_imitate_reward = torch.exp(-20*diff)  # positive reward, not the penalty
         return ankle_imitate_reward
 
     def _reward_target_hip_roll_pos(self):
@@ -429,7 +431,7 @@ class Zq12Robot(LeggedRobot):
          on penalizing deviation in yaw and roll directions. Excludes yaw and roll from the main penalty.
         """
         diff = torch.abs(self.dof_pos[:, 0] - self.ref_dof_pos[:, 0])
-        diff += torch.abs(self.dof_pos[:, 6] - self.ref_dof_pos[:, 6])
+        diff += torch.abs(self.dof_pos[:, 5] - self.ref_dof_pos[:, 5])
         roll_imitate_reward = torch.exp(-15*diff)  # positive reward, not the penalty
         return roll_imitate_reward
 

@@ -1,41 +1,13 @@
-# SPDX-FileCopyrightText: Copyright (c) 2021 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: BSD-3-Clause
-# 
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-# 1. Redistributions of source code must retain the above copyright notice, this
-# list of conditions and the following disclaimer.
-#
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-# this list of conditions and the following disclaimer in the documentation
-# and/or other materials provided with the distribution.
-#
-# 3. Neither the name of the copyright holder nor the names of its
-# contributors may be used to endorse or promote products derived from
-# this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Copyright (c) 2021 ETH Zurich, Nikita Rudin
-from legged_gym import LEGGED_GYM_ROOT_DIR
+
 from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobotCfgPPO
+from legged_gym import LEGGED_GYM_ROOT_DIR
 
 
-class Zq12Cfg(LeggedRobotCfg):
+class Zq10Cfg(LeggedRobotCfg):
     class env(LeggedRobotCfg.env):
         num_envs = 4096
-        num_observations = 47  # 169
-        num_actions = 12
+        num_observations = 41  # 2+3+3+3+10+10+10  169
+        num_actions = 10
         env_spacing = 1.
         queue_len_obs = 4
         queue_len_act = 4
@@ -59,25 +31,25 @@ class Zq12Cfg(LeggedRobotCfg):
             'JOINT_Y3': 0.21,
             'JOINT_Y4': -0.53,
             'JOINT_Y5': 0.31,
-            'JOINT_Y6': 0.0,
+            # 'JOINT_Y6': 0.0,
 
             'JOINT_Z1': 0.0,
             'JOINT_Z2': 0.0,
             'JOINT_Z3': 0.21,
             'JOINT_Z4': -0.53,
             'JOINT_Z5': 0.31,
-            'JOINT_Z6': -0.0,
+            # 'JOINT_Z6': -0.0,
         }
 
     class control(LeggedRobotCfg.control):
         # PD Drive parameters:
         # stiffness = {'JOINT': 100.0}  # [N*m/rad]
         # damping = {'JOINT': 0.0}
-        stiffness = {'JOINT_Y1': 160.0, 'JOINT_Y2': 160.0, 'JOINT_Y3': 160.0, 'JOINT_Y4': 160.0, 'JOINT_Y5': 18.0, 'JOINT_Y6': 18.0,
-                     'JOINT_Z1': 160.0, 'JOINT_Z2': 160.0, 'JOINT_Z3': 160.0, 'JOINT_Z4': 160.0, 'JOINT_Z5': 18.0, 'JOINT_Z6': 18.0,
+        stiffness = {'JOINT_Y1': 160.0, 'JOINT_Y2': 160.0, 'JOINT_Y3': 160.0, 'JOINT_Y4': 160.0, 'JOINT_Y5': 36.0,# 'JOINT_Y6': 200.0,
+                     'JOINT_Z1': 160.0, 'JOINT_Z2': 160.0, 'JOINT_Z3': 160.0, 'JOINT_Z4': 160.0, 'JOINT_Z5': 36.0,# 'JOINT_Z6': 200.0,
                      }  # [N*m/rad]
-        damping = {'JOINT_Y1': 10.0, 'JOINT_Y2': 10.0, 'JOINT_Y3': 10.0, 'JOINT_Y4': 10.0, 'JOINT_Y5': 4.0, 'JOINT_Y6': 4.0,
-                   'JOINT_Z1': 10.0, 'JOINT_Z2': 10.0, 'JOINT_Z3': 10.0, 'JOINT_Z4': 10.0, 'JOINT_Z5': 4.0, 'JOINT_Z6': 4.0,
+        damping = {'JOINT_Y1': 10.0, 'JOINT_Y2': 10.0, 'JOINT_Y3': 10.0, 'JOINT_Y4': 10.0, 'JOINT_Y5': 4.0,# 'JOINT_Y6': 4.0,
+                   'JOINT_Z1': 10.0, 'JOINT_Z2': 10.0, 'JOINT_Z3': 10.0, 'JOINT_Z4': 10.0, 'JOINT_Z5': 4.0,# 'JOINT_Z6': 4.0,
                    }  # [N*m*s/rad]     # [N*m*s/rad]
         # action scale: target angle = actionScale * action + defaultAngle
         action_scale = 0.1
@@ -101,7 +73,7 @@ class Zq12Cfg(LeggedRobotCfg):
 
     class viewer(LeggedRobotCfg.viewer):
         ref_env = 0
-        pos = [-3, -0, 1]  # [m]
+        pos = [-3, -3, 3]  # [m]
         lookat = [0., 0, 1.]  # [m]
 
     class noise:
@@ -125,7 +97,7 @@ class Zq12Cfg(LeggedRobotCfg):
         clip_actions = 100.
 
     class commands(LeggedRobotCfg.commands):
-        step_joint_offset = 0.30  # rad
+        step_joint_offset = 0.50  # rad
         step_freq = 0.2  # HZ （e.g. cycle-time=0.66）
 
         class ranges(LeggedRobotCfg.commands.ranges):
@@ -141,9 +113,9 @@ class Zq12Cfg(LeggedRobotCfg):
 
     class asset(LeggedRobotCfg.asset):
         # file = f'{LEGGED_GYM_ROOT_DIR}/resources/robots/zq01/mjcf/zq_box_foot.xml'
-        file = f'{LEGGED_GYM_ROOT_DIR}/resources/robots/ZQ_Humanoid/urdf/ZQ_Humanoid_long_foot.urdf'
+        file = f'{LEGGED_GYM_ROOT_DIR}/resources/robots/ZQ_Humanoid/urdf/ZQ_Humanoid_10dof.urdf'
         name = "zq01"
-        foot_name = 'foot'
+        foot_name = '5'
         penalize_contacts_on = ['3', '4']
         terminate_after_contacts_on = []
         flip_visual_attachments = False
@@ -235,7 +207,7 @@ class Zq12Cfg(LeggedRobotCfg):
 
 
 
-class Zq12CfgPPO(LeggedRobotCfgPPO):
+class Zq10CfgPPO(LeggedRobotCfgPPO):
 
     init_noise_std = 0.12
     actor_hidden_dims = [512, 256, 128]
@@ -243,8 +215,8 @@ class Zq12CfgPPO(LeggedRobotCfgPPO):
     activation = 'tanh'  # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid
     class runner(LeggedRobotCfgPPO.runner):
         run_name = ''
-        experiment_name = 'zq12sq'
-        max_iterations = 10000
+        experiment_name = 'zq10'
+        max_iterations = 100000
         # logging
         save_interval = 400
         # checkpoint = '90000'

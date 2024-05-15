@@ -28,7 +28,7 @@
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
 import time
-
+import cv2
 from legged_gym import LEGGED_GYM_ROOT_DIR
 import os
 

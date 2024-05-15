@@ -291,17 +291,16 @@ class Zq10Robot(LeggedRobot):
         super()._resample_commands(env_ids)
         # self.commands[env_ids, :2] *= (torch.norm(self.commands[env_ids, :2], dim=1) > 0.2).unsqueeze(1)
         # 每次resample将freq增加0.1，如果超过1Hz，重置成0.5Hz
-        self.ref_freq[env_ids] += 0.1
-        self.ref_freq[self.ref_freq > 1.] = self.cfg.commands.step_freq
+        # self.ref_freq[env_ids] += 0.1
+        # self.ref_freq[self.ref_freq > 1.] = self.cfg.commands.step_freq
 
     def compute_reference_states(self):
         phase = self.ref_count * self.dt * self.ref_freq * 2.
         mask_right = (torch.floor(phase) + 1) % 2
         mask_left = torch.floor(phase) % 2
         cos_pos = (1 - torch.cos(2 * torch.pi * phase)) / 2  # 得到一条从0开始增加，频率为step_freq，振幅0～1的曲线，接地比较平滑
-        self.cos_pos[:, 0] = cos_pos# * mask_right
-        # self.cos_pos[:, 1] = cos_pos * mask_left
-        self.cos_pos[:, 1] = cos_pos# * mask_right
+        self.cos_pos[:, 0] = cos_pos * mask_right
+        self.cos_pos[:, 1] = cos_pos * mask_left
 
         scale_1 = self.cfg.commands.step_joint_offset
         scale_2 = 2 * scale_1

@@ -298,7 +298,8 @@ class Zq12Robot(LeggedRobot):
         phase = self.ref_count * self.dt * self.ref_freq * 2.
         mask_right = (torch.floor(phase) + 1) % 2
         mask_left = torch.floor(phase) % 2
-        cos_pos = (1 - torch.cos(2 * torch.pi * phase)) / 2  # 得到一条从0开始增加，频率为step_freq，振幅0～1的曲线，接地比较平滑
+        # cos_pos = (1 - torch.cos(2 * torch.pi * phase)) / 2  # 得到一条从0开始增加，频率为step_freq，振幅0～1的曲线，接地比较平滑
+        cos_pos = torch.sin(2 * torch.pi * phase)/2
         self.cos_pos[:, 0] = cos_pos# * mask_right
         # self.cos_pos[:, 1] = cos_pos * mask_left
         self.cos_pos[:, 1] = cos_pos# * mask_right
