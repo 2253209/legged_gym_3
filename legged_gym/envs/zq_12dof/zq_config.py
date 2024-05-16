@@ -1,34 +1,6 @@
-# SPDX-FileCopyrightText: Copyright (c) 2021 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: BSD-3-Clause
-# 
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-# 1. Redistributions of source code must retain the above copyright notice, this
-# list of conditions and the following disclaimer.
-#
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-# this list of conditions and the following disclaimer in the documentation
-# and/or other materials provided with the distribution.
-#
-# 3. Neither the name of the copyright holder nor the names of its
-# contributors may be used to endorse or promote products derived from
-# this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Copyright (c) 2021 ETH Zurich, Nikita Rudin
-from legged_gym import LEGGED_GYM_ROOT_DIR
+
 from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobotCfgPPO
+from legged_gym import LEGGED_GYM_ROOT_DIR
 
 
 class Zq12Cfg(LeggedRobotCfg):
@@ -37,19 +9,27 @@ class Zq12Cfg(LeggedRobotCfg):
         num_observations = 47  # 169
         num_actions = 12
         env_spacing = 1.
-        queue_len_obs = 6
-        queue_len_act = 6
+        queue_len_obs = 4
+        queue_len_act = 4
         obs_latency = [5, 20]
         act_latency = [5, 20]
 
     class terrain(LeggedRobotCfg.terrain):
         mesh_type = 'plane'
+        # mesh_type = 'trimesh'
+        curriculum = False
+        # rough terrain only:
+        measure_heights = False
         static_friction = 1.0
         dynamic_friction = 1.0
+        terrain_length = 8.
+        terrain_width = 8.
+        num_rows = 20  # number of terrain rows (levels)
+        num_cols = 20  # number of terrain cols (types)
+        max_init_terrain_level = 10  # starting curriculum state
+        # plane; obstacles; uniform; slope_up; slope_down, stair_up, stair_down
+        terrain_proportions = [0.2, 0.2, 0.4, 0.1, 0.1, 0, 0]
         restitution = 0.
-        measure_heights = False
-        measured_points_x = [-0.5, -0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5]  # 1mx1m rectangle (without center line)
-        measured_points_y = [-0.5, -0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5]
 
     class init_state(LeggedRobotCfg.init_state):
         pos = [0.0, 0.0, 0.832]  # x,y,z [m] accurate:0.832
@@ -73,8 +53,8 @@ class Zq12Cfg(LeggedRobotCfg):
         # PD Drive parameters:
         # stiffness = {'JOINT': 100.0}  # [N*m/rad]
         # damping = {'JOINT': 0.0}
-        stiffness = {'JOINT_Y1': 200.0, 'JOINT_Y2': 200.0, 'JOINT_Y3': 200.0, 'JOINT_Y4': 200.0, 'JOINT_Y5': 200.0, 'JOINT_Y6': 200.0,
-                     'JOINT_Z1': 200.0, 'JOINT_Z2': 200.0, 'JOINT_Z3': 200.0, 'JOINT_Z4': 200.0, 'JOINT_Z5': 200.0, 'JOINT_Z6': 200.0,
+        stiffness = {'JOINT_Y1': 160.0, 'JOINT_Y2': 160.0, 'JOINT_Y3': 160.0, 'JOINT_Y4': 160.0, 'JOINT_Y5': 36.0, 'JOINT_Y6': 36.0,
+                     'JOINT_Z1': 160.0, 'JOINT_Z2': 160.0, 'JOINT_Z3': 160.0, 'JOINT_Z4': 160.0, 'JOINT_Z5': 36.0, 'JOINT_Z6': 36.0,
                      }  # [N*m/rad]
         damping = {'JOINT_Y1': 10.0, 'JOINT_Y2': 10.0, 'JOINT_Y3': 10.0, 'JOINT_Y4': 10.0, 'JOINT_Y5': 4.0, 'JOINT_Y6': 4.0,
                    'JOINT_Z1': 10.0, 'JOINT_Z2': 10.0, 'JOINT_Z3': 10.0, 'JOINT_Z4': 10.0, 'JOINT_Z5': 4.0, 'JOINT_Z6': 4.0,
@@ -101,8 +81,8 @@ class Zq12Cfg(LeggedRobotCfg):
 
     class viewer(LeggedRobotCfg.viewer):
         ref_env = 0
-        pos = [-3, -3, 3]  # [m]
-        lookat = [0., 0, 1.]  # [m]
+        pos = [-0., -3., 2.]  # [m]
+        lookat = [0., 0., 1.]  # [m]
 
     class noise:
         add_noise = True
@@ -180,6 +160,7 @@ class Zq12Cfg(LeggedRobotCfg):
         push_curriculum_common_step = 30000*24
 
         randomize_init_state = False
+        randomize_init_rpy = True
 
     class rewards(LeggedRobotCfg.rewards):
         soft_dof_pos_limit = 0.95
@@ -191,6 +172,7 @@ class Zq12Cfg(LeggedRobotCfg):
         tracking_sigma = 0.15
         min_dist = 0.2
         max_dist = 0.5
+
         class scales(LeggedRobotCfg.rewards.scales):
 
             termination = -5.  # 4. 不倒
@@ -243,7 +225,7 @@ class Zq12CfgPPO(LeggedRobotCfgPPO):
     class runner(LeggedRobotCfgPPO.runner):
         run_name = ''
         experiment_name = 'zq12'
-        max_iterations = 100000
+        max_iterations = 20000
         # logging
         save_interval = 400
         # checkpoint = '90000'

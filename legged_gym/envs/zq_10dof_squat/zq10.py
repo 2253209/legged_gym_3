@@ -245,6 +245,17 @@ class Zq10Robot(LeggedRobot):
             self.root_states[env_ids] = self.base_init_state
             self.root_states[env_ids, :3] += self.env_origins[env_ids]
 
+        if self.cfg.domain_rand.randomize_init_rpy:
+            rpy = torch_rand_float(-0.1, 0.1, (len(env_ids), 3), device=self.device)
+            rolls = torch.zeros(len(env_ids), device=self.device)
+            yaws = torch.zeros(len(env_ids), device=self.device)
+
+            quat = quat_from_euler_xyz(rolls, rpy[:, 1], yaws)
+            self.root_states[env_ids, 3:7] = quat[:]
+            # for index, env_id in enumerate(env_ids):
+            #     self.root_states[env_id, 3:7] = quat_from_euler_xyz(rpy[index, 0], rpy[index, 1], rpy[index, 2])
+            # self.root_states[env_ids, 3:7] += torch_rand_float(-0.5, 0.5, (len(env_ids), 4), device=self.device) # xy position within 1m of the center
+
         # base velocities
         if self.cfg.domain_rand.randomize_init_state:
             self.root_states[env_ids, 7:13] = torch_rand_float(-0.05, 0.05, (len(env_ids), 6), device=self.device) # [7:10]: lin vel, [10:13]: ang vel
@@ -365,8 +376,9 @@ class Zq10Robot(LeggedRobot):
         Calculates the reward for keeping joint positions close to default positions, with a focus
         on penalizing deviation in yaw and roll directions. Excludes yaw and roll from the main penalty.
         """
-        joint_diff = torch.sum((self.dof_pos - self.ref_dof_pos) ** 2, dim=1)
-        imitate_reward = torch.exp(-7*joint_diff)  # positive reward, not the penalty
+        joint_diff_r = torch.sum((self.dof_pos[:, 0:4] - self.ref_dof_pos[:, 0:4]) ** 2, dim=1)
+        joint_diff_l = torch.sum((self.dof_pos[:, 5:9] - self.ref_dof_pos[:, 5:9]) ** 2, dim=1)
+        imitate_reward = torch.exp(-7*(joint_diff_r + joint_diff_l))  # positive reward, not the penalty
         return imitate_reward
 
     def _reward_tracking_lin_x_vel(self):
