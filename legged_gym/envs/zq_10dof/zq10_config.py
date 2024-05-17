@@ -15,8 +15,8 @@ class Zq10Cfg(LeggedRobotCfg):
         act_latency = [5, 20]
 
     class terrain(LeggedRobotCfg.terrain):
-        # mesh_type = 'plane'
-        mesh_type = 'trimesh'
+        mesh_type = 'plane'
+        # mesh_type = 'trimesh'
         curriculum = False
         # rough terrain only:
         measure_heights = False
@@ -32,20 +32,20 @@ class Zq10Cfg(LeggedRobotCfg):
         restitution = 0.
 
     class init_state(LeggedRobotCfg.init_state):
-        pos = [0.0, 0.0, 0.84]  # x,y,z [m] accurate:0.832
+        pos = [0.0, 0.0, 0.86]  # x,y,z [m] accurate:0.832
         default_joint_angles = {  # = target angles [rad] when action = 0.0
             'JOINT_Y1': -0.03,
             'JOINT_Y2': 0.0,
-            'JOINT_Y3': 0.21,
-            'JOINT_Y4': -0.53,
-            'JOINT_Y5': 0.31,
+            'JOINT_Y3': 0.1,
+            'JOINT_Y4': -0.2,
+            'JOINT_Y5': 0.1,
             # 'JOINT_Y6': 0.0,
 
             'JOINT_Z1': 0.03,
             'JOINT_Z2': 0.0,
-            'JOINT_Z3': 0.21,
-            'JOINT_Z4': -0.53,
-            'JOINT_Z5': 0.31,
+            'JOINT_Z3': 0.1,
+            'JOINT_Z4': -0.2,
+            'JOINT_Z5': 0.1,
             # 'JOINT_Z6': -0.0,
         }
 

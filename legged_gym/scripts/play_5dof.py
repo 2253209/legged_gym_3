@@ -40,7 +40,7 @@ from isaacgym import gymapi
 
 import numpy as np
 import torch
-from deploy.utils.logger import SimpleLogger, get_title_short
+from deploy.utils.logger import SimpleLogger, get_title_6dof_deploy
 
 def play(args):
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
@@ -79,8 +79,7 @@ def play(args):
     camera_vel = np.array([1., 1., 0.])
     camera_direction = np.array(env_cfg.viewer.lookat) - np.array(env_cfg.viewer.pos)
     img_idx = 0
-    sloger = SimpleLogger(f'{LEGGED_GYM_ROOT_DIR}/logs/play_log', get_title_5dof_deploy())
-
+    sloger = SimpleLogger(f'{LEGGED_GYM_ROOT_DIR}/logs/play_log', get_title_6dof_deploy())
     t1 = time.time()
     t0 = 0
 
@@ -119,6 +118,7 @@ def play(args):
         # 保存play save
         # obs[:, 2:35] = 0.
         # sloger.save(torch.cat([obs, actions * env_cfg.control.action_scale], dim=1), i, t1 - t0)
+
         actions_scaled = actions * env.cfg.control.action_scale
         action_robot = actions_scaled + env.default_dof_pos
         pos = env.dof_pos

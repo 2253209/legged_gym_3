@@ -182,7 +182,7 @@ class Zq10Cfg(LeggedRobotCfg):
             tracking_ang_vel = 5.0
             lin_vel_z = -0.0
             ang_vel_xy = -0.0
-            orientation = -5.0  # 5. 重力投影
+            orientation = 10.0  # 5. 重力投影
             #
             action_smoothness = -0.  # 0.002
             torques = -3.0e-5
@@ -210,7 +210,7 @@ class Zq10Cfg(LeggedRobotCfg):
             ankle_action_rate = -0.15
 
             target_hip_roll_pos = 2.0
-            target_ankle_pos = 0.5
+            target_ankle_pos = 0.  # 0.5
 
 
 

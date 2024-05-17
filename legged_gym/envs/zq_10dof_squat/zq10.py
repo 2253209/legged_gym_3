@@ -340,7 +340,7 @@ class Zq10Robot(LeggedRobot):
 
         # 如果cmd很小，姿态一直为默认姿势，sin相位也为0
         # self.ref_dof_pos[self.switch_step_or_stand == 0, :] = 0. + self.default_dof_pos[0, :]
-        # print(self.ref_count[0], self.cos_pos[0, 0], self.cos_pos[0, 1], self.ref_dof_pos[0, [2, 3, 4, 8, 9, 10]])
+        # print(self.ref_count[0], self.cos_pos[0, 0], self.cos_pos[0, 1], self.ref_dof_pos[0, [2, 3, 7, 8]])
         # print(self.ref_count[0], self.ref_freq[0], self.ref_dof_pos[0, 8])
 
     def create_sim(self):
@@ -376,10 +376,14 @@ class Zq10Robot(LeggedRobot):
         Calculates the reward for keeping joint positions close to default positions, with a focus
         on penalizing deviation in yaw and roll directions. Excludes yaw and roll from the main penalty.
         """
-        joint_diff_r = torch.sum((self.dof_pos[:, 0:4] - self.ref_dof_pos[:, 0:4]) ** 2, dim=1)
-        joint_diff_l = torch.sum((self.dof_pos[:, 5:9] - self.ref_dof_pos[:, 5:9]) ** 2, dim=1)
+        joint_diff_r = torch.sum((self.dof_pos[:, 2:4] - self.ref_dof_pos[:, 2:4]) ** 2, dim=1)
+        joint_diff_l = torch.sum((self.dof_pos[:, 7:9] - self.ref_dof_pos[:, 7:9]) ** 2, dim=1)
         imitate_reward = torch.exp(-7*(joint_diff_r + joint_diff_l))  # positive reward, not the penalty
         return imitate_reward
+
+    def _reward_orientation(self):
+        # positive reward non flat base orientation
+        return torch.exp(-10. * torch.sum(torch.square(self.projected_gravity[:, :2]), dim=1))
 
     def _reward_tracking_lin_x_vel(self):
         # Tracking of linear velocity commands (xy axes)

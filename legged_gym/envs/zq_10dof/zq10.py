@@ -326,12 +326,12 @@ class Zq10Robot(LeggedRobot):
         # sin_pos_r[sin_pos_r < 0] = 0
         self.ref_dof_pos[:, 2] += self.cos_pos[:, 0] * scale_1
         self.ref_dof_pos[:, 3] += -self.cos_pos[:, 0] * scale_2
-        self.ref_dof_pos[:, 4] += self.cos_pos[:, 0] * scale_1
+        # self.ref_dof_pos[:, 4] += self.cos_pos[:, 0] * scale_1
         # left foot stance phase set to default joint pos
         # sin_pos_l[sin_pos_l > 0] = 0
         self.ref_dof_pos[:, 7] += self.cos_pos[:, 1] * scale_1
         self.ref_dof_pos[:, 8] += -self.cos_pos[:, 1] * scale_2
-        self.ref_dof_pos[:, 9] += self.cos_pos[:, 1] * scale_1
+        # self.ref_dof_pos[:, 9] += self.cos_pos[:, 1] * scale_1
 
         # 双足支撑相位
         # self.ref_dof_pos[torch.abs(self.sin_pos[:, 0]) < 0.1, :] = 0. + self.default_dof_pos[0, :]
@@ -381,7 +381,7 @@ class Zq10Robot(LeggedRobot):
 
     def _reward_orientation(self):
         # positive reward non flat base orientation
-        return torch.exp(-10. * torch.sum(torch.square(self.projected_gravity[:, :2]), dim=1))
+        return torch.exp(-20. * torch.sum(torch.square(self.projected_gravity[:, :2]), dim=1))
 
     def _reward_tracking_lin_x_vel(self):
         # Tracking of linear velocity commands (xy axes)
