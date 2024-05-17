@@ -305,7 +305,7 @@ class Zq12Robot(LeggedRobot):
 
     def _resample_commands(self, env_ids):
         super()._resample_commands(env_ids)
-        # self.commands[env_ids, :2] *= (torch.norm(self.commands[env_ids, :2], dim=1) > 0.2).unsqueeze(1)
+        self.commands[env_ids, :2] *= (torch.norm(self.commands[env_ids, :2], dim=1) > 0.2).unsqueeze(1)
         # 每次resample将freq增加0.1，如果超过1Hz，重置成0.5Hz
         # self.ref_freq[env_ids] += 0.1
         # self.ref_freq[self.ref_freq > 1.] = self.cfg.commands.step_freq
@@ -338,7 +338,7 @@ class Zq12Robot(LeggedRobot):
 
         # 如果cmd很小，姿态一直为默认姿势，sin相位也为0
         # self.ref_dof_pos[self.switch_step_or_stand == 0, :] = 0. + self.default_dof_pos[0, :]
-        # print(self.ref_count[0], self.cos_pos[0, 0], self.cos_pos[0, 1], self.ref_dof_pos[0, [2, 3, 4, 8, 9, 10]])
+        # print(self.ref_count[0], self.cos_pos[0, 0], self.cos_pos[0, 1], self.ref_dof_pos[0, [2, 3, 7, 8]])
         # print(self.ref_count[0], self.ref_freq[0], self.ref_dof_pos[0, 8])
 
     def create_sim(self):
@@ -378,6 +378,10 @@ class Zq12Robot(LeggedRobot):
         joint_diff_l = torch.sum((self.dof_pos[:, 6:10] - self.ref_dof_pos[:, 6:10]) ** 2, dim=1)
         imitate_reward = torch.exp(-7*(joint_diff_r + joint_diff_l))  # positive reward, not the penalty
         return imitate_reward
+
+    def _reward_orientation(self):
+        # positive reward non flat base orientation
+        return torch.exp(-10. * torch.sum(torch.square(self.projected_gravity[:, :2]), dim=1))
 
     def _reward_tracking_lin_x_vel(self):
         # Tracking of linear velocity commands (xy axes)

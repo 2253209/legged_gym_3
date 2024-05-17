@@ -15,8 +15,8 @@ class Zq10Cfg(LeggedRobotCfg):
         act_latency = [5, 20]
 
     class terrain(LeggedRobotCfg.terrain):
-        mesh_type = 'plane'
-        # mesh_type = 'trimesh'
+        # mesh_type = 'plane'
+        mesh_type = 'trimesh'
         curriculum = False
         # rough terrain only:
         measure_heights = False
@@ -53,8 +53,8 @@ class Zq10Cfg(LeggedRobotCfg):
         # PD Drive parameters:
         # stiffness = {'JOINT': 100.0}  # [N*m/rad]
         # damping = {'JOINT': 0.0}
-        stiffness = {'JOINT_Y1': 160.0, 'JOINT_Y2': 160.0, 'JOINT_Y3': 160.0, 'JOINT_Y4': 160.0, 'JOINT_Y5': 72.0,# 'JOINT_Y6': 200.0,
-                     'JOINT_Z1': 160.0, 'JOINT_Z2': 160.0, 'JOINT_Z3': 160.0, 'JOINT_Z4': 160.0, 'JOINT_Z5': 72.0,# 'JOINT_Z6': 200.0,
+        stiffness = {'JOINT_Y1': 160.0, 'JOINT_Y2': 160.0, 'JOINT_Y3': 160.0, 'JOINT_Y4': 160.0, 'JOINT_Y5': 72.0,# 'JOINT_Y6': 36.0,
+                     'JOINT_Z1': 160.0, 'JOINT_Z2': 160.0, 'JOINT_Z3': 160.0, 'JOINT_Z4': 160.0, 'JOINT_Z5': 72.0,# 'JOINT_Z6': 36.0,
                      }  # [N*m/rad]
         damping = {'JOINT_Y1': 10.0, 'JOINT_Y2': 10.0, 'JOINT_Y3': 10.0, 'JOINT_Y4': 10.0, 'JOINT_Y5': 4.0,# 'JOINT_Y6': 4.0,
                    'JOINT_Z1': 10.0, 'JOINT_Z2': 10.0, 'JOINT_Z3': 10.0, 'JOINT_Z4': 10.0, 'JOINT_Z5': 4.0,# 'JOINT_Z6': 4.0,
@@ -106,14 +106,14 @@ class Zq10Cfg(LeggedRobotCfg):
 
     class commands(LeggedRobotCfg.commands):
         step_joint_offset = 0.30  # rad
-        step_freq = 0.2  # HZ （e.g. cycle-time=0.66）
+        step_freq = 1.25  # HZ （e.g. cycle-time=0.66）
 
         class ranges(LeggedRobotCfg.commands.ranges):
             #lin_vel_x = [-0.3, 0.5]  # min max [m/s]
             #lin_vel_y = [-0.0, 0.0]   # min max [m/s]
             #ang_vel_yaw = [-0.3, 0.3]    # min max [rad/s]
             #heading = [-3.14, 3.14]
-            lin_vel_x = [-0.0, 0.0]  # min max [m/s]
+            lin_vel_x = [-0.0, 0.7]  # min max [m/s]
             lin_vel_y = [-0.0, 0.0]  # min max [m/s]
             ang_vel_yaw = [-0.0, 0.0]  # min max [rad/s]
             heading = [-0, 0]
@@ -182,7 +182,7 @@ class Zq10Cfg(LeggedRobotCfg):
             tracking_ang_vel = 5.0
             lin_vel_z = -0.0
             ang_vel_xy = -0.0
-            orientation = -5.0  # 5. 重力投影
+            orientation = 10.0  # 5. 重力投影
             #
             action_smoothness = -0.  # 0.002
             torques = -3.0e-5
