@@ -123,7 +123,7 @@ def play(args):
         action_robot = actions_scaled + env.default_dof_pos
         pos = env.dof_pos
         vel = env.dof_vel
-        tau_joint_state = torch.zeros((env.num_envs, 12))
+        tau_joint_state = torch.zeros((env.num_envs, 12), device=env.device)
         tau_joint_cmd = env.p_gains*(action_robot - env.dof_pos) - env.d_gains*env.dof_vel
         sloger.save(torch.cat([obs, pos, vel, actions, tau_joint_state, tau_joint_cmd], dim=1), i, t1 - t0)
 
