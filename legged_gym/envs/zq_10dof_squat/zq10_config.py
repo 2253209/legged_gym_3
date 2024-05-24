@@ -32,7 +32,7 @@ class Zq10Cfg(LeggedRobotCfg):
         restitution = 0.
 
     class init_state(LeggedRobotCfg.init_state):
-        pos = [0.0, 0.0, 0.84]  # x,y,z [m] accurate:0.832
+        pos = [0.0, 0.0, 0.836]  # x,y,z [m] accurate:0.832
         default_joint_angles = {  # = target angles [rad] when action = 0.0
             'JOINT_Y1': -0.03,
             'JOINT_Y2': 0.0,
@@ -53,11 +53,11 @@ class Zq10Cfg(LeggedRobotCfg):
         # PD Drive parameters:
         # stiffness = {'JOINT': 100.0}  # [N*m/rad]
         # damping = {'JOINT': 0.0}
-        stiffness = {'JOINT_Y1': 160.0, 'JOINT_Y2': 160.0, 'JOINT_Y3': 160.0, 'JOINT_Y4': 160.0, 'JOINT_Y5': 72.0,# 'JOINT_Y6': 200.0,
-                     'JOINT_Z1': 160.0, 'JOINT_Z2': 160.0, 'JOINT_Z3': 160.0, 'JOINT_Z4': 160.0, 'JOINT_Z5': 72.0,# 'JOINT_Z6': 200.0,
+        stiffness = {'JOINT_Y1': 160.0, 'JOINT_Y2': 160.0, 'JOINT_Y3': 160.0, 'JOINT_Y4': 160.0, 'JOINT_Y5': 20.0,# 'JOINT_Y6': 200.0,
+                     'JOINT_Z1': 160.0, 'JOINT_Z2': 160.0, 'JOINT_Z3': 160.0, 'JOINT_Z4': 160.0, 'JOINT_Z5': 20.0,# 'JOINT_Z6': 200.0,
                      }  # [N*m/rad]
-        damping = {'JOINT_Y1': 10.0, 'JOINT_Y2': 10.0, 'JOINT_Y3': 10.0, 'JOINT_Y4': 10.0, 'JOINT_Y5': 4.0,# 'JOINT_Y6': 4.0,
-                   'JOINT_Z1': 10.0, 'JOINT_Z2': 10.0, 'JOINT_Z3': 10.0, 'JOINT_Z4': 10.0, 'JOINT_Z5': 4.0,# 'JOINT_Z6': 4.0,
+        damping = {'JOINT_Y1': 10.0, 'JOINT_Y2': 10.0, 'JOINT_Y3': 10.0, 'JOINT_Y4': 10.0, 'JOINT_Y5': 0.7,# 'JOINT_Y6': 4.0,
+                   'JOINT_Z1': 10.0, 'JOINT_Z2': 10.0, 'JOINT_Z3': 10.0, 'JOINT_Z4': 10.0, 'JOINT_Z5': 0.7,# 'JOINT_Z6': 4.0,
                    }  # [N*m*s/rad]     # [N*m*s/rad]
         # action scale: target angle = actionScale * action + defaultAngle
         action_scale = 0.1
@@ -224,7 +224,7 @@ class Zq10CfgPPO(LeggedRobotCfgPPO):
     activation = 'tanh'  # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid
     class runner(LeggedRobotCfgPPO.runner):
         run_name = ''
-        experiment_name = 'zq10'
+        experiment_name = 'zq10_squat'
         max_iterations = 20000
         # logging
         save_interval = 400

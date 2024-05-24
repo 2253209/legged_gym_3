@@ -376,8 +376,8 @@ class Zq10Robot(LeggedRobot):
         Calculates the reward for keeping joint positions close to default positions, with a focus
         on penalizing deviation in yaw and roll directions. Excludes yaw and roll from the main penalty.
         """
-        joint_diff_r = torch.sum((self.dof_pos[:, 2:4] - self.ref_dof_pos[:, 2:4]) ** 2, dim=1)
-        joint_diff_l = torch.sum((self.dof_pos[:, 7:9] - self.ref_dof_pos[:, 7:9]) ** 2, dim=1)
+        joint_diff_r = torch.sum((self.dof_pos[:, 0:5] - self.ref_dof_pos[:, 0:5]) ** 2, dim=1)
+        joint_diff_l = torch.sum((self.dof_pos[:, 5:10] - self.ref_dof_pos[:, 5:10]) ** 2, dim=1)
         imitate_reward = torch.exp(-7*(joint_diff_r + joint_diff_l))  # positive reward, not the penalty
         return imitate_reward
 
