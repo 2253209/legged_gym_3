@@ -180,7 +180,7 @@ class Zq12Cfg(LeggedRobotCfg):
             tracking_lin_x_vel = 5.0  # 6. 奖励速度为0
             tracking_lin_y_vel = 4.0  # 6. 奖励速度为0
             tracking_ang_vel = 5.0
-            lin_vel_z = -0.0
+            lin_vel_z = -2.0
             ang_vel_xy = -0.0
             orientation = 10.0  # 5. 重力投影
             #
@@ -201,7 +201,8 @@ class Zq12Cfg(LeggedRobotCfg):
             action_rate = -0.25
             stand_still = -0.  # 3. 惩罚：0指令运动。关节角度偏离 初始值
             no_fly = 0.0  # 2. 奖励：两脚都在地上，有一定压力
-            target_joint_pos = 10.0  # 3.  reference joint imitation reward
+            target_joint_pos_r = 10.0  # 3.  reference joint imitation reward
+            target_joint_pos_l = 10.0
             # body_feet_dist = -1.0
             feet_distance = 1.0
 

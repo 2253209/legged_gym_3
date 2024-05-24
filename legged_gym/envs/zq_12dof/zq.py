@@ -369,14 +369,25 @@ class Zq12Robot(LeggedRobot):
         return 1. * single_contact
 
 
-    def _reward_target_joint_pos(self):
+    def _reward_target_joint_pos_l(self):
         """
         Calculates the reward for keeping joint positions close to default positions, with a focus
         on penalizing deviation in yaw and roll directions. Excludes yaw and roll from the main penalty.
         """
-        joint_diff_r = torch.sum((self.dof_pos[:, 0:4] - self.ref_dof_pos[:, 0:4]) ** 2, dim=1)
-        joint_diff_l = torch.sum((self.dof_pos[:, 6:10] - self.ref_dof_pos[:, 6:10]) ** 2, dim=1)
-        imitate_reward = torch.exp(-7*(joint_diff_r + joint_diff_l))  # positive reward, not the penalty
+        # joint_diff_r = torch.sum((self.dof_pos[:, 0:6] - self.ref_dof_pos[:, 0:6]) ** 2, dim=1)
+        joint_diff_l = torch.sum((self.dof_pos[:, 6:12] - self.ref_dof_pos[:, 6:12]) ** 2, dim=1)
+        # imitate_reward = torch.exp(-7*(joint_diff_r + joint_diff_l))  # positive reward, not the penalty
+        imitate_reward = torch.exp(-7 * joint_diff_l)
+        return imitate_reward
+
+    def _reward_target_joint_pos_r(self):
+        """
+        Calculates the reward for keeping joint positions close to default positions, with a focus
+        on penalizing deviation in yaw and roll directions. Excludes yaw and roll from the main penalty.
+        """
+        joint_diff_r = torch.sum((self.dof_pos[:, 0:6] - self.ref_dof_pos[:, 0:6]) ** 2, dim=1)
+        # joint_diff_l = torch.sum((self.dof_pos[:, 6:12] - self.ref_dof_pos[:, 6:12]) ** 2, dim=1)
+        imitate_reward = torch.exp(-7*joint_diff_r)  # positive reward, not the penalty
         return imitate_reward
 
     def _reward_orientation(self):
